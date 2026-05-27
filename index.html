@@ -641,7 +641,7 @@
     if (T.corriendo) arrancarTick();
   }
 
-  // --- Ajuste genérico de cualquier valor de cfg ---
+  // --- Ajuste de la BASE configurada (no afecta una fase en curso) ---
   function ajustar(key, dir) {
     const l = LIM[key];
     cfg[key] = Math.max(l.min, Math.min(l.max, cfg[key] + dir * l.step));
@@ -650,13 +650,40 @@
     pintarSteppers();
   }
 
+  // ¿La tarjeta de `key` corresponde a la fase activa ahora mismo?
+  // (la tarjeta de entrenamiento también aloja la preparación)
+  function esFaseActiva(key) {
+    return (key === 'work' && (T.fase === 'work' || T.fase === 'prep'))
+        || (key === 'rest' && T.fase === 'rest');
+  }
+
+  // --- Ajuste EN VIVO del tiempo restante, sin tocar la base ---
+  function ajustarVivo(key, dir) {
+    const delta = dir * LIM[key].step;
+    if (T.corriendo) {
+      const now = Date.now();
+      const rem = Math.max(1, (finFaseTs - now) / 1000 + delta);
+      finFaseTs = now + rem * 1000;
+      T.restante = rem;
+    } else {
+      T.restante = Math.max(1, T.restante + delta);
+    }
+    elTiempoActivo().textContent = fmt(T.restante);
+    guardarEstado();
+  }
+
   // --- Eventos: timers en pantalla ---
   $('btnPlay').addEventListener('click', togglePlay);
   $('btnReset').addEventListener('click', reiniciar);
   $('btnSaltar').addEventListener('click', saltar);
   document.querySelectorAll('.cstepper button').forEach(b => {
     b.addEventListener('click', () => {
-      ajustar(b.closest('.cstepper').dataset.key, Number(b.dataset.d));
+      const key = b.closest('.cstepper').dataset.key;
+      const dir = Number(b.dataset.d);
+      // Fase en curso (corriendo o en pausa): ajusta el tiempo restante.
+      // Si no, ajusta la base configurada.
+      if (T.fase && esFaseActiva(key)) ajustarVivo(key, dir);
+      else ajustar(key, dir);
     });
   });
 
