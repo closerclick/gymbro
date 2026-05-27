@@ -498,6 +498,27 @@
   }
   function vibrar(ms) { if (navigator.vibrate) navigator.vibrate(ms); }
 
+  // --- Notificaciones cuando la app NO está en foco ---
+  async function pedirNotif() {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'default') {
+      try { await Notification.requestPermission(); } catch {}
+    }
+  }
+  async function notificar(titulo, cuerpo) {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    if (!document.hidden) return; // solo si la app no está visible
+    const opt = {
+      body: cuerpo, icon: 'icon-192.png', badge: 'icon-192.png',
+      tag: 'gymbro', renotify: true, vibrate: [120,60,120]
+    };
+    try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg && reg.showNotification) { await reg.showNotification(titulo, opt); return; }
+    } catch {}
+    try { new Notification(titulo, opt); } catch {}
+  }
+
   // --- Wake lock para mantener la pantalla encendida ---
   let wakeLock = null;
   async function pedirWake() {
@@ -530,6 +551,8 @@
     T.restante = f.dur;
     avisoCambio(f.fase);
     vibrar(f.fase === 'work' ? [120,60,120] : 80);
+    if (f.fase === 'work') notificar('💪 ¡Entrenamiento!', `Ronda ${f.ronda} de ${cfg.rounds}`);
+    else if (f.fase === 'rest') notificar('😮‍💨 Descanso', `Ronda ${f.ronda} de ${cfg.rounds}`);
     render();
     guardarEstado();
   }
@@ -544,6 +567,7 @@
     soltarWake();
     avisoFin();
     vibrar([200,100,200,100,300]);
+    notificar('✅ ¡Sesión completada!', `${cfg.rounds} rondas terminadas 💪`);
     render();
     guardarEstado();
   }
@@ -582,6 +606,7 @@
     if (!T.fase) entrarFase(primeraFase());
     T.corriendo = true;
     beep(700, 0.05, 0.2); // desbloquea audio en móviles
+    pedirNotif();
     pedirWake();
     arrancarTick();
     render();

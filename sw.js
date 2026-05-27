@@ -1,4 +1,4 @@
-const CACHE = 'gymbro-v3';
+const CACHE = 'gymbro-v4';
 const ASSETS = [
   './',
   './index.html',
@@ -18,6 +18,17 @@ self.addEventListener('activate', e => {
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
+  );
+});
+
+// Al tocar la notificación: enfocar la app si ya está abierta, o abrirla.
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      for (const c of list) { if ('focus' in c) return c.focus(); }
+      if (clients.openWindow) return clients.openWindow('./');
+    })
   );
 });
 
