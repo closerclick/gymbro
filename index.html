@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#111827">
 <link rel="manifest" href="manifest.webmanifest">
@@ -53,21 +53,22 @@
   body.fase-work { background: #052e23; }
   body.fase-rest { background: #0a1e3d; }
   body.fase-prep { background: #3a2a06; }
-  body.fin       { background: #1f2937; }
 
   /* --- Barra superior --- */
   .topbar {
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     background: rgba(17,24,39,.55);
     border-bottom: 2px solid rgba(255,255,255,.06);
+    padding-top: env(safe-area-inset-top);
   }
   .topbar button {
     flex: 1;
     border: none;
     background: transparent;
     color: #9ca3af;
-    font-size: 1.9vh;
+    font-size: clamp(11px, 1.9vh, 16px);
     font-weight: 700;
     padding: 1.4vh 0;
     text-transform: uppercase;
@@ -77,70 +78,112 @@
   .topbar button:active { background: rgba(255,255,255,.08); }
   .topbar-coin { flex: 0 0 auto; display: flex; align-items: center; padding: 0 12px; }
 
-  /* --- Zona principal --- */
-  .pantalla {
-    flex: 1;
+  /* --- Cabecera de rondas --- */
+  .ronda-bar {
+    flex: 0 0 auto;
+    text-align: center;
+    padding: 1.2vh 4vw;
+    font-size: clamp(15px, 2.6vh, 24px);
+    font-weight: 800;
+    letter-spacing: .05em;
+    color: #9ca3af;
+  }
+  .ronda-bar.fin { color: var(--work-2); }
+
+  /* --- Dos timers --- */
+  .timers {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.4vh;
+    padding: 0 3vw 1.4vh;
+    min-height: 0;
+  }
+  .card {
+    flex: 1 1 0;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 0;
-    position: relative;
-    cursor: pointer;
+    gap: .6vh;
+    border-radius: 16px;
+    background: rgba(255,255,255,.05);
+    border: 2px solid transparent;
+    overflow: hidden;
+    transition: background .3s, border-color .3s, filter .3s;
   }
-  .fase-label {
-    font-size: 4.2vh;
+  .card.work { background: rgba(5,150,105,.12); }
+  .card.rest { background: rgba(37,99,235,.12); }
+  .card:not(.activa) { filter: brightness(.62) saturate(.7); }
+  .card.work.activa { border-color: var(--work-2); background: rgba(5,150,105,.22); }
+  .card.rest.activa { border-color: var(--rest-2); background: rgba(37,99,235,.22); }
+
+  .clabel {
+    font-size: clamp(13px, 2.6vh, 22px);
     font-weight: 800;
-    letter-spacing: .12em;
+    letter-spacing: .1em;
     text-transform: uppercase;
-    margin-bottom: 1vh;
     color: #9ca3af;
   }
-  body.fase-work .fase-label { color: var(--work-2); }
-  body.fase-rest .fase-label { color: var(--rest-2); }
-  body.fase-prep .fase-label { color: var(--prep); }
+  .card.work .clabel { color: var(--work-2); }
+  .card.rest .clabel { color: var(--rest-2); }
 
-  .tiempo {
-    font-size: 30vh;
+  .ctime {
+    font-size: clamp(44px, 16vh, 150px);
     font-weight: 800;
     line-height: .95;
     font-variant-numeric: tabular-nums;
   }
-  .tiempo.aviso { animation: latido .5s ease-in-out; }
+  .ctime.aviso { animation: latido .5s ease-in-out; }
   @keyframes latido {
     0%,100% { transform: scale(1); }
-    50%     { transform: scale(1.12); }
+    50%     { transform: scale(1.1); }
   }
 
-  .rondas {
-    margin-top: 1.5vh;
-    font-size: 3vh;
-    font-weight: 700;
-    color: #9ca3af;
-    letter-spacing: .05em;
+  /* Stepper de ajuste dentro de cada tarjeta */
+  .cstepper {
+    display: flex;
+    align-items: center;
+    gap: 4vw;
   }
-  .pista {
-    position: absolute;
-    bottom: 2vh;
-    font-size: 1.9vh;
-    color: #6b7280;
+  .cstepper button {
+    width: clamp(40px, 11vw, 60px);
+    height: clamp(40px, 11vw, 60px);
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.45);
+    background: rgba(255,255,255,.12);
+    color: #fff;
+    font-size: clamp(22px, 6vw, 34px);
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cstepper button:active { background: rgba(255,255,255,.32); }
+  .cstepper .hint {
+    font-size: clamp(11px, 1.7vh, 15px);
+    color: #9ca3af;
+    min-width: 3.5ch;
     text-align: center;
-    width: 100%;
-    padding: 0 4vw;
   }
 
   /* --- Barra de control --- */
   .control {
+    flex: 0 0 auto;
     display: flex;
     background: rgba(17,24,39,.55);
     border-top: 2px solid rgba(255,255,255,.06);
+    padding-bottom: env(safe-area-inset-bottom);
   }
   .control button {
     flex: 1;
     border: none;
     background: transparent;
     color: #d1d5db;
-    font-size: 2vh;
+    font-size: clamp(12px, 2vh, 17px);
     font-weight: 700;
     padding: 1.8vh 0;
     text-transform: uppercase;
@@ -151,12 +194,12 @@
   .btn-play {
     background: var(--work) !important;
     color: #fff !important;
-    font-size: 2.6vh !important;
+    font-size: clamp(15px, 2.6vh, 22px) !important;
   }
   .btn-play:active { background: #047857 !important; }
   .btn-play.pausa { background: var(--prep) !important; color: #111827 !important; }
 
-  /* --- Modal de configuración --- */
+  /* --- Modal de configuración (prep + rondas) --- */
   .modal {
     position: fixed;
     inset: 0;
@@ -209,21 +252,16 @@
     border-bottom: 1px solid #374151;
   }
   .campo:last-child { border-bottom: none; }
-  .campo-info { min-width: 0; }
-  .campo-nombre {
-    font-size: 2.2vh;
-    font-weight: 700;
-  }
+  .campo-nombre { font-size: 2.2vh; font-weight: 700; }
   .campo-sub { font-size: 1.5vh; color: #9ca3af; margin-top: .3vh; }
   .stepper { display: flex; align-items: center; gap: 3vw; flex-shrink: 0; }
   .stepper button {
-    width: 9vw; height: 9vw;
-    max-width: 44px; max-height: 44px;
+    width: clamp(38px, 9vw, 44px); height: clamp(38px, 9vw, 44px);
     border-radius: 50%;
     border: 2px solid rgba(255,255,255,.4);
     background: rgba(255,255,255,.1);
     color: #fff;
-    font-size: 4vw;
+    font-size: clamp(20px, 4vw, 26px);
     font-weight: 800;
     line-height: 1;
     cursor: pointer;
@@ -237,12 +275,13 @@
     font-variant-numeric: tabular-nums;
   }
   .modal-foot { padding: 2vh 5vw; border-top: 1px solid #374151; }
-  .total {
-    font-size: 2vh;
-    color: #9ca3af;
-    text-align: center;
-  }
+  .total { font-size: 2vh; color: #9ca3af; text-align: center; }
   .total b { color: #fff; }
+
+  /* En horizontal, los dos timers lado a lado */
+  @media (orientation: landscape) {
+    .timers { flex-direction: row; }
+  }
 </style>
 <!-- Analítica cookieless autohosteada (GoatCounter); no cuenta en localhost/LAN. -->
 <script>window.goatcounter={path:function(p){return location.hostname+p}}</script>
@@ -261,19 +300,35 @@
 }
 </script>
 </head>
-<body class="fin">
+<body>
 
   <div class="topbar">
     <closer-click-support class="topbar-coin" href="https://ko-fi.com/seyacat" repo="seyacat/gymbro" discord="https://discord.gg/GGn6NXNQMp"></closer-click-support>
-    <button id="btnConfig">⚙ Ajustes</button>
+    <button id="btnConfig">⚙ Prep · Rondas</button>
     <button id="btnInstalar" style="display:none">⬇ Instalar</button>
   </div>
 
-  <div class="pantalla" id="pantalla">
-    <div class="fase-label" id="faseLabel">Listo</div>
-    <div class="tiempo" id="tiempo">00:00</div>
-    <div class="rondas" id="rondas"></div>
-    <div class="pista" id="pista">Toca para iniciar · ⚙ para ajustar tiempos</div>
+  <div class="ronda-bar" id="rondaBar">Listo para entrenar</div>
+
+  <div class="timers">
+    <div class="card work" id="cardWork">
+      <div class="clabel" id="labelWork">Entrenamiento</div>
+      <div class="ctime" id="timeWork">00:30</div>
+      <div class="cstepper" data-key="work">
+        <button data-d="-1">−</button>
+        <span class="hint">ajustar</span>
+        <button data-d="1">+</button>
+      </div>
+    </div>
+    <div class="card rest" id="cardRest">
+      <div class="clabel">Descanso</div>
+      <div class="ctime" id="timeRest">00:15</div>
+      <div class="cstepper" data-key="rest">
+        <button data-d="-1">−</button>
+        <span class="hint">ajustar</span>
+        <button data-d="1">+</button>
+      </div>
+    </div>
   </div>
 
   <div class="control">
@@ -290,7 +345,7 @@
       </div>
       <div class="modal-body">
         <div class="campo">
-          <div class="campo-info">
+          <div>
             <div class="campo-nombre">Preparación</div>
             <div class="campo-sub">Cuenta atrás antes de empezar</div>
           </div>
@@ -299,25 +354,7 @@
           </div>
         </div>
         <div class="campo">
-          <div class="campo-info">
-            <div class="campo-nombre">Entrenamiento</div>
-            <div class="campo-sub">Duración de cada ronda activa</div>
-          </div>
-          <div class="stepper" data-key="work" data-step="5" data-min="5" data-max="900" data-mode="seg">
-            <button data-d="-1">−</button><div class="val"></div><button data-d="1">+</button>
-          </div>
-        </div>
-        <div class="campo">
-          <div class="campo-info">
-            <div class="campo-nombre">Descanso</div>
-            <div class="campo-sub">Pausa entre rondas</div>
-          </div>
-          <div class="stepper" data-key="rest" data-step="5" data-min="0" data-max="900" data-mode="seg">
-            <button data-d="-1">−</button><div class="val"></div><button data-d="1">+</button>
-          </div>
-        </div>
-        <div class="campo">
-          <div class="campo-info">
+          <div>
             <div class="campo-nombre">Rondas</div>
             <div class="campo-sub">Número de series</div>
           </div>
@@ -337,6 +374,12 @@
 
   const DEF = { prep: 10, work: 30, rest: 15, rounds: 8 };
   const CFG_KEY = 'gymbro_cfg';
+  const LIM = {
+    work:   { step: 5, min: 5, max: 900 },
+    rest:   { step: 5, min: 0, max: 900 },
+    prep:   { step: 5, min: 0, max: 60  },
+    rounds: { step: 1, min: 1, max: 99  }
+  };
 
   let cfg = cargarCfg();
 
@@ -353,9 +396,10 @@
   const T = {
     corriendo: false,
     fase: null,      // 'prep' | 'work' | 'rest' | null
-    ronda: 0,        // ronda actual (1..rounds)
-    restante: 0,     // segundos restantes en la fase
-    tickId: null
+    ronda: 0,
+    restante: 0,
+    tickId: null,
+    finalizado: false
   };
 
   function fmt(s) {
@@ -365,24 +409,51 @@
     return `${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
   }
 
-  const ETIQUETAS = { prep: 'Preparación', work: 'Entrenamiento', rest: 'Descanso' };
-
   function render() {
-    $('tiempo').textContent = fmt(T.restante);
-    $('faseLabel').textContent = T.fase ? ETIQUETAS[T.fase] : 'Listo';
-    document.body.className = T.fase ? 'fase-' + T.fase : 'fin';
+    document.body.className = T.fase ? 'fase-' + T.fase : '';
 
-    if (T.fase && T.fase !== 'prep') {
-      $('rondas').textContent = `Ronda ${T.ronda} / ${cfg.rounds}`;
-    } else if (T.fase === 'prep') {
-      $('rondas').textContent = '¡Prepárate!';
+    // Tarjeta de entrenamiento (también muestra la preparación, que la precede)
+    const cw = $('cardWork');
+    if (T.fase === 'prep') {
+      $('labelWork').textContent = 'Preparación';
+      $('timeWork').textContent = fmt(T.restante);
+      cw.classList.add('activa');
+    } else if (T.fase === 'work') {
+      $('labelWork').textContent = 'Entrenamiento';
+      $('timeWork').textContent = fmt(T.restante);
+      cw.classList.add('activa');
     } else {
-      $('rondas').textContent = '';
+      $('labelWork').textContent = 'Entrenamiento';
+      $('timeWork').textContent = fmt(cfg.work);
+      cw.classList.remove('activa');
+    }
+
+    // Tarjeta de descanso
+    const cr = $('cardRest');
+    if (T.fase === 'rest') {
+      $('timeRest').textContent = fmt(T.restante);
+      cr.classList.add('activa');
+    } else {
+      $('timeRest').textContent = fmt(cfg.rest);
+      cr.classList.remove('activa');
+    }
+
+    // Barra de rondas
+    const rb = $('rondaBar');
+    rb.classList.remove('fin');
+    if (T.finalizado) {
+      rb.textContent = `💪 ¡Completado! ${cfg.rounds} rondas`;
+      rb.classList.add('fin');
+    } else if (T.fase === 'prep') {
+      rb.textContent = '¡Prepárate!';
+    } else if (T.fase) {
+      rb.textContent = `Ronda ${T.ronda} / ${cfg.rounds}`;
+    } else {
+      rb.textContent = 'Listo para entrenar';
     }
 
     $('btnPlay').innerHTML = T.corriendo ? '⏸ Pausa' : (T.fase ? '▶ Seguir' : '▶ Iniciar');
     $('btnPlay').classList.toggle('pausa', T.corriendo);
-    $('pista').style.display = T.fase ? 'none' : '';
   }
 
   // --- Audio: beeps con WebAudio (sin archivos externos) ---
@@ -410,7 +481,6 @@
   function avisoFin() {
     beep(880, 0.2); setTimeout(() => beep(1175, 0.2), 220); setTimeout(() => beep(1568, 0.4), 460);
   }
-
   function vibrar(ms) { if (navigator.vibrate) navigator.vibrate(ms); }
 
   // --- Wake lock para mantener la pantalla encendida ---
@@ -428,18 +498,16 @@
     if (cfg.prep > 0) return { fase: 'prep', dur: cfg.prep, ronda: 0 };
     return { fase: 'work', dur: cfg.work, ronda: 1 };
   }
-
   function siguienteFase() {
     if (T.fase === 'prep') return { fase: 'work', dur: cfg.work, ronda: 1 };
     if (T.fase === 'work') {
-      if (T.ronda >= cfg.rounds) return null; // fin
+      if (T.ronda >= cfg.rounds) return null;
       if (cfg.rest > 0) return { fase: 'rest', dur: cfg.rest, ronda: T.ronda };
       return { fase: 'work', dur: cfg.work, ronda: T.ronda + 1 };
     }
     if (T.fase === 'rest') return { fase: 'work', dur: cfg.work, ronda: T.ronda + 1 };
     return null;
   }
-
   function entrarFase(f) {
     if (!f) { terminar(); return; }
     T.fase = f.fase;
@@ -456,16 +524,11 @@
     T.fase = null;
     T.ronda = 0;
     T.restante = 0;
+    T.finalizado = true;
     soltarWake();
     avisoFin();
     vibrar([200,100,200,100,300]);
-    $('faseLabel').textContent = '¡Completado! 💪';
-    $('tiempo').textContent = '00:00';
-    $('rondas').textContent = `${cfg.rounds} rondas terminadas`;
-    document.body.className = 'fin';
-    $('btnPlay').innerHTML = '▶ Iniciar';
-    $('btnPlay').classList.remove('pausa');
-    $('pista').style.display = '';
+    render();
   }
 
   // --- Bucle por tiempo real (robusto ante throttling) ---
@@ -476,13 +539,15 @@
     finFaseTs = Date.now() + T.restante * 1000;
     T.tickId = setInterval(tick, 100);
   }
+  function elTiempoActivo() { return T.fase === 'rest' ? $('timeRest') : $('timeWork'); }
   function tick() {
     const prev = Math.ceil(T.restante);
     T.restante = (finFaseTs - Date.now()) / 1000;
     const ahora = Math.ceil(T.restante);
+    const el = elTiempoActivo();
     if (ahora !== prev && ahora <= 3 && ahora >= 1) {
       avisoCuenta();
-      $('tiempo').classList.remove('aviso'); void $('tiempo').offsetWidth; $('tiempo').classList.add('aviso');
+      el.classList.remove('aviso'); void el.offsetWidth; el.classList.add('aviso');
     }
     if (T.restante <= 0) {
       const sig = siguienteFase();
@@ -491,12 +556,13 @@
       arrancarTick();
       return;
     }
-    $('tiempo').textContent = fmt(T.restante);
+    el.textContent = fmt(T.restante);
   }
 
   function iniciar() {
     if (T.corriendo) return;
-    if (!T.fase) { entrarFase(primeraFase()); }
+    T.finalizado = false;
+    if (!T.fase) entrarFase(primeraFase());
     T.corriendo = true;
     beep(700, 0.05, 0.2); // desbloquea audio en móviles
     pedirWake();
@@ -518,12 +584,10 @@
     T.fase = null;
     T.ronda = 0;
     T.restante = 0;
+    T.finalizado = false;
     soltarWake();
     render();
-    $('faseLabel').textContent = 'Listo';
-    $('tiempo').textContent = fmt(cfg.prep > 0 ? cfg.prep : cfg.work);
   }
-
   function saltar() {
     if (!T.fase) return;
     const sig = siguienteFase();
@@ -532,38 +596,41 @@
     if (T.corriendo) arrancarTick();
   }
 
-  // --- Eventos ---
+  // --- Ajuste genérico de cualquier valor de cfg ---
+  function ajustar(key, dir) {
+    const l = LIM[key];
+    cfg[key] = Math.max(l.min, Math.min(l.max, cfg[key] + dir * l.step));
+    guardarCfg();
+    render();
+    pintarSteppers();
+  }
+
+  // --- Eventos: timers en pantalla ---
   $('btnPlay').addEventListener('click', togglePlay);
   $('btnReset').addEventListener('click', reiniciar);
   $('btnSaltar').addEventListener('click', saltar);
-  $('pantalla').addEventListener('click', togglePlay);
+  document.querySelectorAll('.cstepper button').forEach(b => {
+    b.addEventListener('click', () => {
+      ajustar(b.closest('.cstepper').dataset.key, Number(b.dataset.d));
+    });
+  });
 
-  // --- Modal de configuración ---
+  // --- Modal (prep + rondas) ---
   function abrirConfig() { pintarSteppers(); $('modalConfig').classList.add('abierto'); }
-  function cerrarConfig() { $('modalConfig').classList.remove('abierto'); if (!T.fase) reiniciar(); }
-
+  function cerrarConfig() { $('modalConfig').classList.remove('abierto'); }
   function totalEstimado() {
-    let s = cfg.prep + cfg.rounds * cfg.work + Math.max(0, cfg.rounds - 1) * cfg.rest;
-    return s;
+    return cfg.prep + cfg.rounds * cfg.work + Math.max(0, cfg.rounds - 1) * cfg.rest;
   }
   function pintarSteppers() {
-    document.querySelectorAll('.stepper').forEach(st => {
+    document.querySelectorAll('#modalConfig .stepper').forEach(st => {
       const k = st.dataset.key;
-      const val = st.querySelector('.val');
-      val.textContent = st.dataset.mode === 'seg' ? fmt(cfg[k]) : cfg[k];
+      st.querySelector('.val').textContent = st.dataset.mode === 'seg' ? fmt(cfg[k]) : cfg[k];
     });
     $('totalEst').textContent = fmt(totalEstimado());
   }
-  document.querySelectorAll('.stepper button').forEach(b => {
+  document.querySelectorAll('#modalConfig .stepper button').forEach(b => {
     b.addEventListener('click', () => {
-      const st = b.closest('.stepper');
-      const k = st.dataset.key;
-      const step = Number(st.dataset.step);
-      const min = Number(st.dataset.min);
-      const max = Number(st.dataset.max);
-      cfg[k] = Math.max(min, Math.min(max, cfg[k] + Number(b.dataset.d) * step));
-      guardarCfg();
-      pintarSteppers();
+      ajustar(b.closest('.stepper').dataset.key, Number(b.dataset.d));
     });
   });
   $('btnConfig').addEventListener('click', abrirConfig);
@@ -573,7 +640,7 @@
   });
 
   // Estado inicial
-  reiniciar();
+  render();
 
   // --- PWA: service worker + botón Instalar ---
   if ('serviceWorker' in navigator) {
