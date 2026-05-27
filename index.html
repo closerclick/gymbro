@@ -392,6 +392,21 @@
   }
   function guardarCfg() { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); }
 
+  // Estado del timer persistido. Todo se ancla a timestamps epoch (UTC) para
+  // que el refresco —o cerrar y volver— descuente el tiempo real transcurrido.
+  const STATE_KEY = 'gymbro_state';
+  function guardarEstado() {
+    localStorage.setItem(STATE_KEY, JSON.stringify({
+      fase: T.fase,
+      ronda: T.ronda,
+      corriendo: T.corriendo,
+      finalizado: T.finalizado,
+      finFaseTs,        // epoch ms (UTC) en que acaba la fase en curso
+      restante: T.restante  // segundos restantes si está en pausa
+    }));
+  }
+  function limpiarEstado() { localStorage.removeItem(STATE_KEY); }
+
   // --- Estado del timer ---
   const T = {
     corriendo: false,
@@ -516,6 +531,7 @@
     avisoCambio(f.fase);
     vibrar(f.fase === 'work' ? [120,60,120] : 80);
     render();
+    guardarEstado();
   }
 
   function terminar() {
@@ -529,6 +545,7 @@
     avisoFin();
     vibrar([200,100,200,100,300]);
     render();
+    guardarEstado();
   }
 
   // --- Bucle por tiempo real (robusto ante throttling) ---
@@ -568,6 +585,7 @@
     pedirWake();
     arrancarTick();
     render();
+    guardarEstado();
   }
   function pausar() {
     if (!T.corriendo) return;
@@ -575,6 +593,7 @@
     T.corriendo = false;
     soltarWake();
     render();
+    guardarEstado();
   }
   function togglePlay() { T.corriendo ? pausar() : iniciar(); }
 
@@ -586,6 +605,7 @@
     T.restante = 0;
     T.finalizado = false;
     soltarWake();
+    limpiarEstado();
     render();
   }
   function saltar() {
@@ -639,8 +659,42 @@
     if (e.target === $('modalConfig')) cerrarConfig();
   });
 
+  // Pone al día el cronómetro tras un refresco: descuenta el tiempo real
+  // (epoch/UTC) transcurrido y avanza por las fases que hayan vencido mientras
+  // la página estuvo cerrada, sin emitir sonidos por las fases saltadas.
+  function ponerAlDia() {
+    const now = Date.now();
+    while (T.corriendo && T.fase && now >= finFaseTs) {
+      const sig = siguienteFase();
+      if (!sig) { terminar(); return; }
+      T.fase = sig.fase;
+      T.ronda = sig.ronda;
+      finFaseTs += sig.dur * 1000;
+    }
+    if (T.corriendo) T.restante = (finFaseTs - now) / 1000;
+  }
+
+  function restaurar() {
+    let s = null;
+    try { s = JSON.parse(localStorage.getItem(STATE_KEY)); } catch {}
+    if (!s) { render(); return; }
+    T.fase = s.fase || null;
+    T.ronda = s.ronda || 0;
+    T.finalizado = !!s.finalizado;
+    if (s.corriendo && s.fase) {
+      finFaseTs = s.finFaseTs || Date.now();
+      T.corriendo = true;
+      ponerAlDia();              // puede terminar la sesión si ya venció todo
+      if (T.corriendo) { pedirWake(); arrancarTick(); }
+    } else if (s.fase) {
+      T.restante = s.restante || 0;  // estaba en pausa a mitad de fase
+    }
+    render();
+    guardarEstado();
+  }
+
   // Estado inicial
-  render();
+  restaurar();
 
   // --- PWA: service worker + botón Instalar ---
   if ('serviceWorker' in navigator) {
