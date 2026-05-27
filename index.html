@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#111827">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-title" content="GymBro">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>GymBro Timer — Entrenamiento y descanso</title>
+<meta name="description" content="Timer por intervalos para el gimnasio: define tu tiempo de entrenamiento y de descanso, el número de rondas y entrena con avisos sonoros. Funciona sin conexión." />
+<link rel="canonical" href="https://gymbro.closer.click/" />
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="es_ES" />
+<meta property="og:site_name" content="Closer Click" />
+<meta property="og:title" content="GymBro Timer" />
+<meta property="og:description" content="Timer por intervalos para el gimnasio: tiempo de entrenamiento y descanso, rondas y avisos sonoros." />
+<meta property="og:url" content="https://gymbro.closer.click/" />
+<meta property="og:image" content="https://gymbro.closer.click/og.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="GymBro Timer" />
+<meta name="twitter:description" content="Timer por intervalos para el gimnasio: tiempo de entrenamiento y descanso, rondas y avisos sonoros." />
+<meta name="twitter:image" content="https://gymbro.closer.click/og.jpg" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --work: #059669;
+    --work-2: #34d399;
+    --rest: #2563eb;
+    --rest-2: #60a5fa;
+    --prep: #f59e0b;
+  }
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    background: #111827;
+    color: #fff;
+    transition: background-color .4s;
+  }
+  body.fase-work { background: #052e23; }
+  body.fase-rest { background: #0a1e3d; }
+  body.fase-prep { background: #3a2a06; }
+  body.fin       { background: #1f2937; }
+
+  /* --- Barra superior --- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    background: rgba(17,24,39,.55);
+    border-bottom: 2px solid rgba(255,255,255,.06);
+  }
+  .topbar button {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: #9ca3af;
+    font-size: 1.9vh;
+    font-weight: 700;
+    padding: 1.4vh 0;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    cursor: pointer;
+  }
+  .topbar button:active { background: rgba(255,255,255,.08); }
+  .topbar-coin { flex: 0 0 auto; display: flex; align-items: center; padding: 0 12px; }
+
+  /* --- Zona principal --- */
+  .pantalla {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    position: relative;
+    cursor: pointer;
+  }
+  .fase-label {
+    font-size: 4.2vh;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin-bottom: 1vh;
+    color: #9ca3af;
+  }
+  body.fase-work .fase-label { color: var(--work-2); }
+  body.fase-rest .fase-label { color: var(--rest-2); }
+  body.fase-prep .fase-label { color: var(--prep); }
+
+  .tiempo {
+    font-size: 30vh;
+    font-weight: 800;
+    line-height: .95;
+    font-variant-numeric: tabular-nums;
+  }
+  .tiempo.aviso { animation: latido .5s ease-in-out; }
+  @keyframes latido {
+    0%,100% { transform: scale(1); }
+    50%     { transform: scale(1.12); }
+  }
+
+  .rondas {
+    margin-top: 1.5vh;
+    font-size: 3vh;
+    font-weight: 700;
+    color: #9ca3af;
+    letter-spacing: .05em;
+  }
+  .pista {
+    position: absolute;
+    bottom: 2vh;
+    font-size: 1.9vh;
+    color: #6b7280;
+    text-align: center;
+    width: 100%;
+    padding: 0 4vw;
+  }
+
+  /* --- Barra de control --- */
+  .control {
+    display: flex;
+    background: rgba(17,24,39,.55);
+    border-top: 2px solid rgba(255,255,255,.06);
+  }
+  .control button {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: #d1d5db;
+    font-size: 2vh;
+    font-weight: 700;
+    padding: 1.8vh 0;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    cursor: pointer;
+  }
+  .control button:active { background: rgba(255,255,255,.08); }
+  .btn-play {
+    background: var(--work) !important;
+    color: #fff !important;
+    font-size: 2.6vh !important;
+  }
+  .btn-play:active { background: #047857 !important; }
+  .btn-play.pausa { background: var(--prep) !important; color: #111827 !important; }
+
+  /* --- Modal de configuración --- */
+  .modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.78);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    padding: 4vh 4vw;
+  }
+  .modal.abierto { display: flex; }
+  .modal-caja {
+    background: #1f2937;
+    color: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 460px;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2vh 5vw;
+    border-bottom: 1px solid #374151;
+  }
+  .modal-head h2 {
+    font-size: 2.4vh;
+    font-weight: 800;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+  }
+  .modal-cerrar {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 3vh;
+    cursor: pointer;
+    padding: 0 1vw;
+  }
+  .modal-body { overflow-y: auto; padding: 1vh 0 2vh; }
+  .campo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2vh 5vw;
+    border-bottom: 1px solid #374151;
+  }
+  .campo:last-child { border-bottom: none; }
+  .campo-info { min-width: 0; }
+  .campo-nombre {
+    font-size: 2.2vh;
+    font-weight: 700;
+  }
+  .campo-sub { font-size: 1.5vh; color: #9ca3af; margin-top: .3vh; }
+  .stepper { display: flex; align-items: center; gap: 3vw; flex-shrink: 0; }
+  .stepper button {
+    width: 9vw; height: 9vw;
+    max-width: 44px; max-height: 44px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.4);
+    background: rgba(255,255,255,.1);
+    color: #fff;
+    font-size: 4vw;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .stepper button:active { background: rgba(255,255,255,.3); }
+  .stepper .val {
+    min-width: 4.5ch;
+    text-align: center;
+    font-size: 2.6vh;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .modal-foot { padding: 2vh 5vw; border-top: 1px solid #374151; }
+  .total {
+    font-size: 2vh;
+    color: #9ca3af;
+    text-align: center;
+  }
+  .total b { color: #fff; }
+</style>
+<!-- Analítica cookieless autohosteada (GoatCounter); no cuenta en localhost/LAN. -->
+<script>window.goatcounter={path:function(p){return location.hostname+p}}</script>
+<script data-goatcounter="https://goat.closer.click/count" async src="https://goat.closer.click/count.js"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "GymBro Timer",
+  "url": "https://gymbro.closer.click/",
+  "description": "Timer por intervalos para el gimnasio: tiempo de entrenamiento y descanso, rondas y avisos sonoros.",
+  "applicationCategory": "HealthApplication",
+  "operatingSystem": "Web",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "publisher": { "@type": "Organization", "name": "Closer Click", "url": "https://closer.click/" }
+}
+</script>
+</head>
+<body class="fin">
+
+  <div class="topbar">
+    <closer-click-support class="topbar-coin" href="https://ko-fi.com/seyacat" repo="seyacat/gymbro" discord="https://discord.gg/GGn6NXNQMp"></closer-click-support>
+    <button id="btnConfig">⚙ Ajustes</button>
+    <button id="btnInstalar" style="display:none">⬇ Instalar</button>
+  </div>
+
+  <div class="pantalla" id="pantalla">
+    <div class="fase-label" id="faseLabel">Listo</div>
+    <div class="tiempo" id="tiempo">00:00</div>
+    <div class="rondas" id="rondas"></div>
+    <div class="pista" id="pista">Toca para iniciar · ⚙ para ajustar tiempos</div>
+  </div>
+
+  <div class="control">
+    <button id="btnReset">↺ Reiniciar</button>
+    <button class="btn-play" id="btnPlay">▶ Iniciar</button>
+    <button id="btnSaltar">⏭ Saltar</button>
+  </div>
+
+  <div class="modal" id="modalConfig">
+    <div class="modal-caja">
+      <div class="modal-head">
+        <h2>Ajustes</h2>
+        <button class="modal-cerrar" id="btnCerrar">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="campo">
+          <div class="campo-info">
+            <div class="campo-nombre">Preparación</div>
+            <div class="campo-sub">Cuenta atrás antes de empezar</div>
+          </div>
+          <div class="stepper" data-key="prep" data-step="5" data-min="0" data-max="60" data-mode="seg">
+            <button data-d="-1">−</button><div class="val"></div><button data-d="1">+</button>
+          </div>
+        </div>
+        <div class="campo">
+          <div class="campo-info">
+            <div class="campo-nombre">Entrenamiento</div>
+            <div class="campo-sub">Duración de cada ronda activa</div>
+          </div>
+          <div class="stepper" data-key="work" data-step="5" data-min="5" data-max="900" data-mode="seg">
+            <button data-d="-1">−</button><div class="val"></div><button data-d="1">+</button>
+          </div>
+        </div>
+        <div class="campo">
+          <div class="campo-info">
+            <div class="campo-nombre">Descanso</div>
+            <div class="campo-sub">Pausa entre rondas</div>
+          </div>
+          <div class="stepper" data-key="rest" data-step="5" data-min="0" data-max="900" data-mode="seg">
+            <button data-d="-1">−</button><div class="val"></div><button data-d="1">+</button>
+          </div>
+        </div>
+        <div class="campo">
+          <div class="campo-info">
+            <div class="campo-nombre">Rondas</div>
+            <div class="campo-sub">Número de series</div>
+          </div>
+          <div class="stepper" data-key="rounds" data-step="1" data-min="1" data-max="99" data-mode="num">
+            <button data-d="-1">−</button><div class="val"></div><button data-d="1">+</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <div class="total">Total estimado: <b id="totalEst">—</b></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const $ = id => document.getElementById(id);
+
+  const DEF = { prep: 10, work: 30, rest: 15, rounds: 8 };
+  const CFG_KEY = 'gymbro_cfg';
+
+  let cfg = cargarCfg();
+
+  function cargarCfg() {
+    try {
+      const d = JSON.parse(localStorage.getItem(CFG_KEY));
+      if (d && typeof d === 'object') return { ...DEF, ...d };
+    } catch {}
+    return { ...DEF };
+  }
+  function guardarCfg() { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); }
+
+  // --- Estado del timer ---
+  const T = {
+    corriendo: false,
+    fase: null,      // 'prep' | 'work' | 'rest' | null
+    ronda: 0,        // ronda actual (1..rounds)
+    restante: 0,     // segundos restantes en la fase
+    tickId: null
+  };
+
+  function fmt(s) {
+    s = Math.max(0, Math.round(s));
+    const m = Math.floor(s / 60);
+    const ss = s % 60;
+    return `${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+  }
+
+  const ETIQUETAS = { prep: 'Preparación', work: 'Entrenamiento', rest: 'Descanso' };
+
+  function render() {
+    $('tiempo').textContent = fmt(T.restante);
+    $('faseLabel').textContent = T.fase ? ETIQUETAS[T.fase] : 'Listo';
+    document.body.className = T.fase ? 'fase-' + T.fase : 'fin';
+
+    if (T.fase && T.fase !== 'prep') {
+      $('rondas').textContent = `Ronda ${T.ronda} / ${cfg.rounds}`;
+    } else if (T.fase === 'prep') {
+      $('rondas').textContent = '¡Prepárate!';
+    } else {
+      $('rondas').textContent = '';
+    }
+
+    $('btnPlay').innerHTML = T.corriendo ? '⏸ Pausa' : (T.fase ? '▶ Seguir' : '▶ Iniciar');
+    $('btnPlay').classList.toggle('pausa', T.corriendo);
+    $('pista').style.display = T.fase ? 'none' : '';
+  }
+
+  // --- Audio: beeps con WebAudio (sin archivos externos) ---
+  let actx = null;
+  function beep(freq = 880, dur = 0.15, vol = 0.5) {
+    try {
+      if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === 'suspended') actx.resume();
+      const o = actx.createOscillator();
+      const g = actx.createGain();
+      o.type = 'sine';
+      o.frequency.value = freq;
+      g.gain.setValueAtTime(vol, actx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + dur);
+      o.connect(g); g.connect(actx.destination);
+      o.start(); o.stop(actx.currentTime + dur);
+    } catch {}
+  }
+  function avisoCuenta() { beep(880, 0.12, 0.4); }
+  function avisoCambio(fase) {
+    if (fase === 'work') { beep(660, 0.18); setTimeout(() => beep(990, 0.28), 180); }
+    else if (fase === 'rest') { beep(520, 0.25, 0.4); }
+    else { beep(440, 0.15); }
+  }
+  function avisoFin() {
+    beep(880, 0.2); setTimeout(() => beep(1175, 0.2), 220); setTimeout(() => beep(1568, 0.4), 460);
+  }
+
+  function vibrar(ms) { if (navigator.vibrate) navigator.vibrate(ms); }
+
+  // --- Wake lock para mantener la pantalla encendida ---
+  let wakeLock = null;
+  async function pedirWake() {
+    try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch {}
+  }
+  function soltarWake() { try { wakeLock && wakeLock.release(); wakeLock = null; } catch {} }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && T.corriendo) pedirWake();
+  });
+
+  // --- Secuencia de fases ---
+  function primeraFase() {
+    if (cfg.prep > 0) return { fase: 'prep', dur: cfg.prep, ronda: 0 };
+    return { fase: 'work', dur: cfg.work, ronda: 1 };
+  }
+
+  function siguienteFase() {
+    if (T.fase === 'prep') return { fase: 'work', dur: cfg.work, ronda: 1 };
+    if (T.fase === 'work') {
+      if (T.ronda >= cfg.rounds) return null; // fin
+      if (cfg.rest > 0) return { fase: 'rest', dur: cfg.rest, ronda: T.ronda };
+      return { fase: 'work', dur: cfg.work, ronda: T.ronda + 1 };
+    }
+    if (T.fase === 'rest') return { fase: 'work', dur: cfg.work, ronda: T.ronda + 1 };
+    return null;
+  }
+
+  function entrarFase(f) {
+    if (!f) { terminar(); return; }
+    T.fase = f.fase;
+    T.ronda = f.ronda;
+    T.restante = f.dur;
+    avisoCambio(f.fase);
+    vibrar(f.fase === 'work' ? [120,60,120] : 80);
+    render();
+  }
+
+  function terminar() {
+    pararTick();
+    T.corriendo = false;
+    T.fase = null;
+    T.ronda = 0;
+    T.restante = 0;
+    soltarWake();
+    avisoFin();
+    vibrar([200,100,200,100,300]);
+    $('faseLabel').textContent = '¡Completado! 💪';
+    $('tiempo').textContent = '00:00';
+    $('rondas').textContent = `${cfg.rounds} rondas terminadas`;
+    document.body.className = 'fin';
+    $('btnPlay').innerHTML = '▶ Iniciar';
+    $('btnPlay').classList.remove('pausa');
+    $('pista').style.display = '';
+  }
+
+  // --- Bucle por tiempo real (robusto ante throttling) ---
+  let finFaseTs = 0;
+  function pararTick() { if (T.tickId) { clearInterval(T.tickId); T.tickId = null; } }
+  function arrancarTick() {
+    pararTick();
+    finFaseTs = Date.now() + T.restante * 1000;
+    T.tickId = setInterval(tick, 100);
+  }
+  function tick() {
+    const prev = Math.ceil(T.restante);
+    T.restante = (finFaseTs - Date.now()) / 1000;
+    const ahora = Math.ceil(T.restante);
+    if (ahora !== prev && ahora <= 3 && ahora >= 1) {
+      avisoCuenta();
+      $('tiempo').classList.remove('aviso'); void $('tiempo').offsetWidth; $('tiempo').classList.add('aviso');
+    }
+    if (T.restante <= 0) {
+      const sig = siguienteFase();
+      if (!sig) { terminar(); return; }
+      entrarFase(sig);
+      arrancarTick();
+      return;
+    }
+    $('tiempo').textContent = fmt(T.restante);
+  }
+
+  function iniciar() {
+    if (T.corriendo) return;
+    if (!T.fase) { entrarFase(primeraFase()); }
+    T.corriendo = true;
+    beep(700, 0.05, 0.2); // desbloquea audio en móviles
+    pedirWake();
+    arrancarTick();
+    render();
+  }
+  function pausar() {
+    if (!T.corriendo) return;
+    pararTick();
+    T.corriendo = false;
+    soltarWake();
+    render();
+  }
+  function togglePlay() { T.corriendo ? pausar() : iniciar(); }
+
+  function reiniciar() {
+    pararTick();
+    T.corriendo = false;
+    T.fase = null;
+    T.ronda = 0;
+    T.restante = 0;
+    soltarWake();
+    render();
+    $('faseLabel').textContent = 'Listo';
+    $('tiempo').textContent = fmt(cfg.prep > 0 ? cfg.prep : cfg.work);
+  }
+
+  function saltar() {
+    if (!T.fase) return;
+    const sig = siguienteFase();
+    if (!sig) { terminar(); return; }
+    entrarFase(sig);
+    if (T.corriendo) arrancarTick();
+  }
+
+  // --- Eventos ---
+  $('btnPlay').addEventListener('click', togglePlay);
+  $('btnReset').addEventListener('click', reiniciar);
+  $('btnSaltar').addEventListener('click', saltar);
+  $('pantalla').addEventListener('click', togglePlay);
+
+  // --- Modal de configuración ---
+  function abrirConfig() { pintarSteppers(); $('modalConfig').classList.add('abierto'); }
+  function cerrarConfig() { $('modalConfig').classList.remove('abierto'); if (!T.fase) reiniciar(); }
+
+  function totalEstimado() {
+    let s = cfg.prep + cfg.rounds * cfg.work + Math.max(0, cfg.rounds - 1) * cfg.rest;
+    return s;
+  }
+  function pintarSteppers() {
+    document.querySelectorAll('.stepper').forEach(st => {
+      const k = st.dataset.key;
+      const val = st.querySelector('.val');
+      val.textContent = st.dataset.mode === 'seg' ? fmt(cfg[k]) : cfg[k];
+    });
+    $('totalEst').textContent = fmt(totalEstimado());
+  }
+  document.querySelectorAll('.stepper button').forEach(b => {
+    b.addEventListener('click', () => {
+      const st = b.closest('.stepper');
+      const k = st.dataset.key;
+      const step = Number(st.dataset.step);
+      const min = Number(st.dataset.min);
+      const max = Number(st.dataset.max);
+      cfg[k] = Math.max(min, Math.min(max, cfg[k] + Number(b.dataset.d) * step));
+      guardarCfg();
+      pintarSteppers();
+    });
+  });
+  $('btnConfig').addEventListener('click', abrirConfig);
+  $('btnCerrar').addEventListener('click', cerrarConfig);
+  $('modalConfig').addEventListener('click', e => {
+    if (e.target === $('modalConfig')) cerrarConfig();
+  });
+
+  // Estado inicial
+  reiniciar();
+
+  // --- PWA: service worker + botón Instalar ---
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+  let deferredPrompt = null;
+  const btnInstalar = $('btnInstalar');
+  const yaInstalada = () =>
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
+  if (!yaInstalada()) {
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      deferredPrompt = e;
+      btnInstalar.style.display = '';
+    });
+  }
+  btnInstalar.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    btnInstalar.style.display = 'none';
+  });
+  window.addEventListener('appinstalled', () => {
+    btnInstalar.style.display = 'none';
+    deferredPrompt = null;
+  });
+</script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@gatoseya/closer-click-support@0.3/src/index.js"></script>
+</body>
+</html>
