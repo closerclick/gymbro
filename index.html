@@ -244,11 +244,11 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 2vh 5vw;
+    padding: 16px 22px;
     border-bottom: 1px solid #374151;
   }
   .modal-head h2 {
-    font-size: 2.4vh;
+    font-size: clamp(16px, 2.4vh, 22px);
     font-weight: 800;
     letter-spacing: .05em;
     text-transform: uppercase;
@@ -257,29 +257,30 @@
     background: transparent;
     border: none;
     color: #fff;
-    font-size: 3vh;
+    font-size: 26px;
     cursor: pointer;
-    padding: 0 1vw;
+    padding: 0 8px;
   }
-  .modal-body { overflow-y: auto; padding: 1vh 0 2vh; }
+  .modal-body { overflow-y: auto; padding: 8px 0 16px; }
   .campo {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 2vh 5vw;
+    gap: 16px;
+    padding: 16px 22px;
     border-bottom: 1px solid #374151;
   }
   .campo:last-child { border-bottom: none; }
-  .campo-nombre { font-size: 2.2vh; font-weight: 700; }
-  .campo-sub { font-size: 1.5vh; color: #9ca3af; margin-top: .3vh; }
-  .stepper { display: flex; align-items: center; gap: 3vw; flex-shrink: 0; }
+  .campo-nombre { font-size: clamp(15px, 2.2vh, 19px); font-weight: 700; }
+  .campo-sub { font-size: clamp(12px, 1.5vh, 14px); color: #9ca3af; margin-top: 3px; }
+  .stepper { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
   .stepper button {
-    width: clamp(38px, 9vw, 44px); height: clamp(38px, 9vw, 44px);
+    width: 44px; height: 44px;
     border-radius: 50%;
     border: 2px solid rgba(255,255,255,.4);
     background: rgba(255,255,255,.1);
     color: #fff;
-    font-size: clamp(20px, 4vw, 26px);
+    font-size: 24px;
     font-weight: 800;
     line-height: 1;
     cursor: pointer;
@@ -288,12 +289,12 @@
   .stepper .val {
     min-width: 4.5ch;
     text-align: center;
-    font-size: 2.6vh;
+    font-size: clamp(18px, 2.6vh, 24px);
     font-weight: 800;
     font-variant-numeric: tabular-nums;
   }
-  .modal-foot { padding: 2vh 5vw; border-top: 1px solid #374151; }
-  .total { font-size: 2vh; color: #9ca3af; text-align: center; }
+  .modal-foot { padding: 16px 22px; border-top: 1px solid #374151; }
+  .total { font-size: clamp(14px, 2vh, 17px); color: #9ca3af; text-align: center; }
   .total b { color: #fff; }
 
   /* En horizontal, los dos timers lado a lado */
