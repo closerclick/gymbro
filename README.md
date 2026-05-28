@@ -1,6 +1,6 @@
 # GymBro Timer
 
-Timer por intervalos para el gimnasio: define tu **tiempo de entrenamiento** y tu **tiempo de descanso**, el número de rondas y una cuenta atrás de preparación. Avisos sonoros en los últimos 3 segundos y al cambiar de fase, vibración, pantalla siempre encendida (wake lock) y funcionamiento sin conexión (PWA instalable). Parte del ecosistema [Closer Click](https://seyacat.github.io/closerclick/).
+Timer por intervalos para el gimnasio: define tu **tiempo de entrenamiento** y tu **tiempo de descanso**, el número de rondas y una cuenta atrás de preparación. Avisos sonoros en los últimos 3 segundos y al cambiar de fase, vibración, pantalla siempre encendida (wake lock) y funcionamiento sin conexión (PWA instalable). Parte del ecosistema [Closer Click](https://closerclick.github.io/closerclick/).
 
 La configuración (tiempos y rondas) vive solo en tu navegador (`localStorage`); nada se envía a ningún servidor.
 
